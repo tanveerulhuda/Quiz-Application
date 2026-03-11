@@ -1,72 +1,168 @@
-import java.util.Scanner;
+import java.util.*;
+import java.io.*;
+
+
 
 public class QuizApp {
 
-   static String questions [] = {
-            "Who invented Java",
-            "Which key word is used to inherit a class",
-            "which method is entry point of java"
-        };
+    static Scanner sc = new Scanner(System.in);
 
-    static    String options [][]={
-            {"1. james Gosling", "2. Dennis Ritchie", "3. Bjarne Stroustrup", "4. Guido van Rossum"},
-            {"1. Implement", "2. Extends", "3. inherit", "4. super"},
-            {"1. Start()", "2. run()", "3. main()", "4. init()"}
-        };
+    public static void main(String[] args) {
 
-    static int answer[]={1,2,3};
-    static int score=0;
-    static String correctAns = "";
-public static void main(String[] args) {
-    startQuiz();
-    showResult();
-    
-}    
+        System.out.print("Enter your name: ");
+        String playerName = sc.nextLine();
 
+        ArrayList<Question> easy = new ArrayList<>();
+        ArrayList<Question> medium = new ArrayList<>();
+        ArrayList<Question> hard = new ArrayList<>();
 
+        // EASY QUESTIONS
+        easy.add(new Question(
+                "Who invented Java?",
+                new String[]{"James Gosling","Dennis Ritchie","Bjarne Stroustrup","Guido van Rossum"},
+                1));
 
+        easy.add(new Question(
+                "Which company developed Java?",
+                new String[]{"Microsoft","Sun Microsystems","Google","Apple"},
+                2));
 
-public static void startQuiz(){
-    Scanner sc = new Scanner(System.in);
-    //loop through all questions
-        for(int i =0; i<questions.length;i++){
-            System.out.println("nQuestion "+ (i+1));
-            System.out.println(questions[i]);
+        // MEDIUM QUESTIONS
+        medium.add(new Question(
+                "Which keyword is used to inherit a class?",
+                new String[]{"implements","extends","inherit","super"},
+                2));
 
-              //Print options
-            for(int j = 0; j<options[i].length; j++){
-                System.out.println(options[i][j]);
-                correctAns=options[i][j];
+        medium.add(new Question(
+                "Which method is entry point of Java?",
+                new String[]{"start()","run()","main()","init()"},
+                3));
+
+        // HARD QUESTIONS
+        hard.add(new Question(
+                "Which package contains Scanner class?",
+                new String[]{"java.io","java.util","java.lang","java.sql"},
+                2));
+
+        hard.add(new Question(
+                "Which keyword prevents inheritance?",
+                new String[]{"static","abstract","final","const"},
+                3));
+
+        System.out.println("\nSelect Difficulty Level");
+        System.out.println("1. Easy");
+        System.out.println("2. Medium");
+        System.out.println("3. Hard");
+
+        int level = sc.nextInt();
+
+        ArrayList<Question> quiz;
+
+        if(level == 1)
+            quiz = easy;
+        else if(level == 2)
+            quiz = medium;
+        else
+            quiz = hard;
+
+        playQuiz(quiz, playerName);
+    }
+
+    public static void playQuiz(ArrayList<Question> quiz, String playerName){
+
+        Collections.shuffle(quiz);
+
+        int score = 0;
+
+        for(int i=0;i<quiz.size();i++){
+
+            Question q = quiz.get(i);
+
+            System.out.println("\nQuestion " + (i+1));
+            System.out.println(q.question);
+
+            for(int j=0;j<q.options.length;j++){
+                System.out.println((j+1) + ". " + q.options[j]);
             }
 
-            System.out.println("Enter your answer (1-4): ");
-            int userAnswer = sc.nextInt();
+            int userAnswer;
 
-            // check answer
-            if(userAnswer==answer[i]){
-                System.out.println("Correct");
+            while(true){
+
+                System.out.print("Enter answer (1-4): ");
+                userAnswer = sc.nextInt();
+
+                if(userAnswer >= 1 && userAnswer <= 4)
+                    break;
+                else
+                    System.out.println("Invalid input!");
+            }
+
+            if(userAnswer == q.answer){
+
+                System.out.println("Correct ✅");
                 score++;
+
             } else{
-                System.out.println("wrong");
-                System.out.println("The correct answer is: "+ correctAns);
+
+                System.out.println("Wrong ❌");
+                System.out.println("Correct answer: " + q.options[q.answer-1]);
             }
-}
-
-sc.close();
-}
-
-public static void showResult(){
-    double percentage =  (score *100) / questions.length;
-        System.out.println("\nYour Final Score: " + score + "/" + questions.length);
-        System.out.println("\nYour Percentage is: " + percentage+" %");
-
-        if (percentage>=50) {
-            System.out.println("Result: PASS");
         }
-        else{
+
+        showResult(score, quiz.size());
+
+        saveScore(playerName, score);
+
+        showLeaderboard();
+    }
+
+    public static void showResult(int score, int total){
+
+        double percentage = (score * 100.0) / total;
+
+        System.out.println("\nFinal Score: " + score + "/" + total);
+        System.out.println("Percentage: " + percentage + "%");
+
+        if(percentage >= 50)
+            System.out.println("Result: PASS 🎉");
+        else
             System.out.println("Result: FAIL");
-        }
+    }
 
-}     
-   
+    public static void saveScore(String name, int score){
+
+        try{
+
+            FileWriter fw = new FileWriter("leaderboard.txt", true);
+            fw.write(name + " - " + score + "\n");
+            fw.close();
+
+        } catch(IOException e){
+
+            System.out.println("Error saving score.");
+        }
+    }
+
+    public static void showLeaderboard(){
+
+        System.out.println("\n------ LEADERBOARD ------");
+
+        try{
+
+            File file = new File("leaderboard.txt");
+            Scanner reader = new Scanner(file);
+
+            while(reader.hasNextLine()){
+
+                System.out.println(reader.nextLine());
+            }
+
+            reader.close();
+
+        } catch(Exception e){
+
+            System.out.println("Leaderboard not found.");
+        }
+    }
 }
